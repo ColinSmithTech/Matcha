@@ -1,1 +1,9 @@
-[1, 2, 3].map(n => n ** 2);
+import React from 'react';
+import { render } from 'react-dom';
+
+const App = <div>Hello!</div>;
+
+const container = document.getElementById('root');
+render(
+    App, container
+);

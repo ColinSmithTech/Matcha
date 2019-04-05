@@ -12,10 +12,18 @@ module.exports = {
         rules: [{
             test: /\.js?$/,
             loader: 'babel-loader',
+            include: [
+                path.resolve(__dirname, './client/src')
+            ],
             options:{
                 presets: ['react']
             },
         }]
-    }
+    },
+    devServer: {
+        contentBase: path.join(__dirname, './client/dist'),
+        compress: true,
+        port: 3000
+      }
 };
 
