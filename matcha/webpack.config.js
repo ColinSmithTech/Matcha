@@ -19,5 +19,16 @@ module.exports = {
                 presets: ['react']
             },
         }]
+    },
+
+    devServer: {
+        contentBase: path.resolve(__dirname, './client/dist'),
+        compress: true,
+        port: 3000,
+        historyApiFallback: {
+            rewrites: [
+                { from: /^\/app/, to: '/app/index.html' },
+            ]
+        }
     }
 };
