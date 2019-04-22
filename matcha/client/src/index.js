@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import { withRouter } from 'react-router';
 
 // Sign in form
 class SigninForm extends Component {
@@ -11,14 +12,15 @@ class SigninForm extends Component {
   }
 }
 
+// Displays the current users information
 class UserProfile extends Component {
     render() {
         const { user } = this.props;
 
         return (
             <div>
-                <h2>user Profile</h2>
-                <span></span>
+                <h2>User Profile</h2>
+                <span>{ user.name }</span>
             </div>
         );
     }
@@ -36,6 +38,8 @@ class SignupForm extends Component {
           onNameUpdate,
           onEmailUpdate,
           onPasswordUpdate,
+          onSubmit,
+          history,
       } = this.props
 
     return (
@@ -67,14 +71,17 @@ class SignupForm extends Component {
                     />
             </div>
             <div>
-                <button type="button">Continue</button>
+                <button type="button" onClick={ () => {
+                    onSubmit();
+                    history.push('/app/user/profile');
+                }}>Continue</button>
             </div>
         </div>
     );
   }
 }
+const SignupFormWithRouter = withRouter(SignupForm);
 
-// This determines the components appearance
 class App extends Component {
     constructor(props) {
         super(props);
@@ -89,6 +96,7 @@ class App extends Component {
         };
     }
 
+    // The following three function handle updating the sign up forms data stored in state
     onNameUpdate(name) {
         const { signUpForm } = this.state;
 
@@ -119,6 +127,25 @@ class App extends Component {
         });
     }
 
+    // Takes user inputted in SignupForm and creates a current user
+    onSignUpSubmit() {
+        const { signUpForm } = this.state;
+
+        this.setState({
+            // Stores information from current signup form to create a current user
+            currentUser: {
+                name: signUpForm.name,
+                email: signUpForm.email,
+            },
+            // Stores user input for the SignupForm
+            signUpForm: {
+                name: '',
+                email: '',
+                password: '',
+            },
+        });
+    }
+
     render() {
         const { currentUser, signUpForm } = this.state
         return (
@@ -132,11 +159,14 @@ class App extends Component {
                 {/* Determines which component to show based on the current url */}
                 <div>
                     <Route path="/app/signup" render={ () => (
-                        <SignupForm
+                        // The following argument in SignupForm tag are functions created here
+                        //  to be passed the SignupForm class.
+                        <SignupFormWithRouter
                             state = { signUpForm }
                             onNameUpdate = { this.onNameUpdate.bind(this) }
                             onEmailUpdate = { this.onEmailUpdate.bind(this) }
                             onPasswordUpdate = { this.onPasswordUpdate.bind(this) }
+                            onSubmit = { this.onSignUpSubmit.bind(this) }
                             /> 
                     )} />
                     <Route path="/app/signin" render={ SigninForm } />
