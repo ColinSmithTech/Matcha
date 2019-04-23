@@ -5,7 +5,12 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const crypto = require('crypto');
 const createHash = crypto.createHash;
+const passport = require('passport')
+const LocalStrategy = require('passport-local').Strategy;
+const bodyParser = require('body-parser');
 
+app.use(bodyParser.json());
+app.use(passport.initialize());
 mongoose.connect('mongodb+srv://test:123@matcha-vgfcr.mongodb.net/test?retryWrites=true', {useNewUrlParser: true});
 
 const UserSchema = new Schema({
@@ -68,6 +73,47 @@ app.get('/', function(req, res) {
     });
 });
 
+passport.use(new LocalStrategy({
+    usernameField: 'email',
+    session: false
+    },
+    function(email, password, done) {
+        User.findOne({ email }, function(err, user) {
+            if (err) {
+                console.log('Auth error ' + err);
+                return done(err);
+            }
+            if (!user) {
+                return done(null, false, { message: 'Incorrect username.' });
+            }
+            if (!user.authenticate(password)) {
+                return done(null, false, { message: 'Incorrect password.' });
+            }
+            return done(null, user);
+        });
+    }
+    ));
+
+
+app.post(
+    '/auth/login', 
+      passport.authenticate('local'),
+      function(req, res) {
+        res.send('nice');
+      }
+);
+
 seed();
+
+app.use((err, req, res, next) => {
+    res.status(err.status || 500);
+    res.json({
+        'error': {
+            message: err.message,
+            error: err
+        }
+    });
+    next();
+});
 
 app.listen(3000);
