@@ -137,7 +137,7 @@ class App extends Component {
                 name: signUpForm.name,
                 email: signUpForm.email,
             },
-            // Stores user input for the SignupForm
+            // Resets valuesin signUpForm
             signUpForm: {
                 name: '',
                 email: '',
@@ -156,11 +156,8 @@ class App extends Component {
                         <li><Link to="/app/signup">Sign up</Link></li>
                     </ul>
                 </div>
-                {/* Determines which component to show based on the current url */}
                 <div>
                     <Route path="/app/signup" render={ () => (
-                        // The following argument in SignupForm tag are functions created here
-                        //  to be passed the SignupForm class.
                         <SignupFormWithRouter
                             state = { signUpForm }
                             onNameUpdate = { this.onNameUpdate.bind(this) }
@@ -179,10 +176,8 @@ class App extends Component {
     }
 }
 
-// Tells render function where to display the App html
 const container = document.getElementById('root');
 
-// Takes two arguments, what to render and where to render
 render(
     <App />,
     container
