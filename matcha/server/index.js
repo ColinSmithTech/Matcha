@@ -73,6 +73,16 @@ app.get('/', function(req, res) {
     });
 });
 
+passport.serializeUser(function(user, done) {
+    done(null, user.email);
+  });
+  
+passport.deserializeUser(function(email, done) {
+    User.findOne({ email }, function(err, user) {
+        done(err, user);
+    });
+});
+
 passport.use(new LocalStrategy({
     usernameField: 'email',
     session: false
@@ -95,13 +105,12 @@ passport.use(new LocalStrategy({
     ));
 
 
-app.post(
-    '/auth/login', 
-      passport.authenticate('local'),
-      function(req, res) {
-        res.send('nice');
-      }
-);
+app.post('/auth/login', (req, res, next) => {
+      passport.authenticate('local', (err, user) => {
+          console.log(user);
+          res.json(user);
+      })(req, res, next);
+    });
 
 seed();
 
