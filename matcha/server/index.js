@@ -8,6 +8,10 @@ const createHash = crypto.createHash;
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy;
 const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const expressJwt = require('express-jwt');
+const compose = require('composable-middleware');
+const SECRET = 'Marvin42';
 
 app.use(bodyParser.json());
 app.use(passport.initialize());
@@ -73,6 +77,35 @@ app.get('/', function(req, res) {
     });
 });
 
+const sendUnathorized = (req, res) => {
+    res.status(401).json({ message: 'Unathorized'});
+};
+
+const validateJwt = expressJwt({
+    secret: SECRET,
+    fail: sendUnathorized,
+});
+
+function isAuthenticated(req, res, next) {
+    return compose()
+    .use((req, res, next) => {
+        validateJwt(req, res, next);
+    })
+    .use((req, res, next) => {
+        const { email } = req.user;
+        User.findOne({ email }, function(err, user) {
+            if (err) return next(err);
+            if (!user) return sendUnathorized(req, res);
+            req.user = user;
+            next();
+        });
+    });
+};
+
+app.get('/protected', isAuthenticated(), function(req, res) {
+    res.send('Authenticated');
+});
+
 passport.serializeUser(function(user, done) {
     done(null, user.email);
   });
@@ -104,15 +137,50 @@ passport.use(new LocalStrategy({
     }
     ));
 
+app.use((req, res, next) => {
+    const header = req.headers.authorization;
+
+    // Authorization: bearer [token]
+    if (header) {
+        const splitHeader = header.split(' ');
+
+        if (splitHeader.length !== 2 && splitHeader[0] !== 'Bearer') {
+            next();
+        } else {
+            const decoded = jwt.decode(splitHeader[1]);
+            console.log(decoded);
+
+        /*        (err, data) => {
+                if (err) {
+                    next(err);
+                } else {
+                    User.findOne({ email }), ((err, user) => {
+                        req.user = user;
+                        next();
+                    });
+                }
+            });*/
+        }
+    } else {
+        next();
+    }
+});
 
 app.post('/auth/login', (req, res, next) => {
       passport.authenticate('local', (err, user) => {
-          console.log(user);
-          res.json(user);
+          const access_token = jwt.sign({
+              id: user._id,
+              email: user.email,
+          }, SECRET, {
+              expiresIn: 60 * 60,
+          });
+          res.json({
+              access_token,
+          });
       })(req, res, next);
     });
 
-seed();
+//seed();
 
 app.use((err, req, res, next) => {
     res.status(err.status || 500);
