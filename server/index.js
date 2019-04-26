@@ -146,6 +146,7 @@ app.get('/', function(req, res) {
 app.get('/protected', auth.isAuthenticated(User), function(req, res) {
     res.send('Authenticated');
 });
+
 app.use('/api', require('./api')(db, isAuthenticated));
 
 // -------------------------
