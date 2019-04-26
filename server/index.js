@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const http = require('http').Server(app);
+
 const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
@@ -21,17 +22,48 @@ const seed = () => {
         email: 'alice@example.com',
         displayName: 'Alice',
         password: '123123',
+        scores: {},
     }, {
         email: 'bob@example.com',
         displayName: 'Bob',
         password: '321321',
+        scores: {},
+    }, {
+        email: 'christine@example.com',
+        displayName: 'Christine',
+        password: '321321',
+        scores: {},
+    }, {
+        email: 'dylan@example.com',
+        displayName: 'Dylan',
+        password: '321321',
+        scores: {},
     }];
 
-    User.create(users, (err, users_) => {
-        console.log(`MONGODB SEED: ${users_.length} Users created.`);
+    User.deleteMany({}).then(() => {
+        User.create(users, (err, users_) => {
+            console.log(`MONGODB SEED: ${users_.length} Users created.`);
+
+            const [ alice, bob, christine, dylan ] = users_;
+
+            alice.scores = {
+                [ dylan._id ]: 1,
+            };
+
+            bob.scores = {
+                [ christine._id ]: 1,
+            };
+
+            christine.scores = {
+                [ dylan._id ]: 1,
+            };
+
+            alice.save();
+            bob.save();
+            christine.save();
+        });
     });
 };
-
 db.on('open', () => {
     seed();
 });
@@ -111,6 +143,9 @@ app.get('/', function(req, res) {
     });
 });
 
+app.get('/protected', auth.isAuthenticated(User), function(req, res) {
+    res.send('Authenticated');
+});
 app.use('/api', require('./api')(db, isAuthenticated));
 
 // -------------------------
@@ -126,4 +161,4 @@ app.use((err, req, res, next) => {
     next();
 });
 
-http.listen(3000);
+http.listen(5000);
