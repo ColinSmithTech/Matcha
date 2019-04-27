@@ -4,6 +4,7 @@ const http = require('http').Server(app);
 
 const bodyParser = require('body-parser');
 
+app.use(require('cors')());
 app.use(bodyParser.json());
 
 const mongoose = require('mongoose');

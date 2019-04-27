@@ -57,7 +57,7 @@ class UserProfile extends Component {
         return (
             <div>
                 <h2>User Profile</h2>
-                <span>{ user.name }</span>
+                <span>{ user.displayName }</span>
             </div>
         );
     }
@@ -68,7 +68,7 @@ class SignupForm extends Component {
   render() {
       const {
           state: {
-              name,
+              displayName,
               email,
               password,
           },
@@ -89,7 +89,7 @@ class SignupForm extends Component {
                 <input
                     type="text"
                     onChange={ e => onNameUpdate(e.target.value)}
-                    value={ name }
+                    value={ displayName }
                     placeholder="Your name"
                     />
             </div>
@@ -128,7 +128,7 @@ class App extends Component {
         this.state = {
             currentUser: null,
             signUpForm: {
-                name: '',
+                displayName: '',
                 email: '',
                 password: '',
             },
@@ -177,7 +177,7 @@ class App extends Component {
         this.setState({
             // Stores information from current signup form to create a current user
             currentUser: {
-                name: signUpForm.name,
+                displayName: signUpForm.name,
                 email: signUpForm.email,
             },
             // Resets valuesin signUpForm
@@ -188,6 +188,7 @@ class App extends Component {
             },
         });
     }
+
     onSignInSubmit() {
         const {
             signInForm: {
@@ -197,7 +198,7 @@ class App extends Component {
         } = this.state;
 
         fetch(
-            'localhost:4000/auth/login',
+            'http://localhost:3000/auth/login',
             {
                 method: 'POST',
                 headers: {
@@ -212,6 +213,23 @@ class App extends Component {
             .then(data => data.json())
             .then (( { access_token }) => {
                 console.log(access_token);
+                fetch(
+                    'http://localhost:3000/api/users/me',
+                    {
+                        headers: {
+                            Authorization: `Bearer ${access_token}`,
+                        },
+                    }
+                )
+                    .then(data => data.json())
+                    .then(({email, displayName}) => {
+                       this.setState({
+                           currentUser: {
+                                email,
+                                displayName,
+                           },
+                       });
+                    });
             })
             .catch (err => console.error(err));
     }
@@ -224,6 +242,10 @@ class App extends Component {
                     <ul>
                         <li><Link to="/app/signin">Sign in</Link></li>
                         <li><Link to="/app/signup">Sign up</Link></li>
+                        { 
+                            currentUser &&
+                            <li><Link to="/app/user/profile">{ currentUser.displayName }</Link></li>
+                        }
                     </ul>
                 </div>
                 <div>
