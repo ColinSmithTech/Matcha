@@ -24,7 +24,7 @@ module.exports = {
     devServer: {
         contentBase: path.resolve(__dirname, './client/dist'),
         compress: true,
-        port: 3000,
+        port: 4000,
         historyApiFallback: {
             rewrites: [
                 { from: /^\/app/, to: '/app/index.html' },
