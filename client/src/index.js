@@ -121,22 +121,62 @@ class SignupForm extends Component {
 }
 const SignupFormWithRouter = withRouter(SignupForm);
 
+const API = access_token => {
+    const baseApiUrl = 'http://localhost:3000';
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${access_token}`,
+        },
+    };
+
+    return {
+        get({ endpoint, options = {} }) {
+            return fetch(
+                `${baseApiUrl}/${endpoint}`,
+                Object.assign({}, defaultOptions, options)
+            ).then(data => data.json());
+        },
+        post({ endpoint, options = {}, body = '' }) {
+            return fetch(
+                `${baseApiUrl}/${endpoint}`,
+                Object.assign({
+                    method: 'POST',
+                    body: JSON.stringify(body),
+                }, defaultOptions, options)
+            ).then(data => data.json());
+        },
+    };
+};
+
 class App extends Component {
     constructor(props) {
         super(props);
 
+        const access_token = window.localStorage.getItem('access_token');
+
         this.state = {
+            access_token,
             currentUser: null,
+            signInForm: {
+                email: 'bob@example.com',
+                password: '321321',
+            },
             signUpForm: {
                 displayName: '',
                 email: '',
                 password: '',
             },
-            signInForm: {
-                email: 'bob@example.com',
-                password: '321321',
-            },
         };
+
+        this.api = API(access_token);
+    }
+
+    componentDidUpdate() {
+        const { access_token } = this.state;
+        window.localStorage.setItem('access_token', access_token);
+
+        this.api = API(access_token);
     }
 
     // The following three function handle updating the sign up forms data stored in state
@@ -197,41 +237,33 @@ class App extends Component {
             },
         } = this.state;
 
-        fetch(
-            'http://localhost:3000/auth/login',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
+        this.api.post({
+           endpoint: 'auth/login',
+           body: {
+               email,
+               password,
+           }
+        })
+        .then (( { access_token }) => {
+            console.log(access_token);
+            this.setState({
+                access_token,
+            });
+            this.loadCurrentUser();
+        })
+        .catch (err => console.error(err));
+    }
+
+    loadCurrentUser() {
+        this.api.get({ endpoint: 'api/users/me' })
+        .then(({email, displayName}) => {
+           this.setState({
+               currentUser: {
                     email,
-                    password,
-                }),
-            },
-        )
-            .then(data => data.json())
-            .then (( { access_token }) => {
-                console.log(access_token);
-                fetch(
-                    'http://localhost:3000/api/users/me',
-                    {
-                        headers: {
-                            Authorization: `Bearer ${access_token}`,
-                        },
-                    }
-                )
-                    .then(data => data.json())
-                    .then(({email, displayName}) => {
-                       this.setState({
-                           currentUser: {
-                                email,
-                                displayName,
-                           },
-                       });
-                    });
-            })
-            .catch (err => console.error(err));
+                    displayName,
+               },
+           });
+        });
     }
 
     render() {
