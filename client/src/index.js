@@ -60,7 +60,7 @@ class UserProfile extends Component {
             }
         }
 
-        if (user === false) {
+        if (user == null && user === false) {
             return (
                 <div>
                     <h2>Loading...</h2>
