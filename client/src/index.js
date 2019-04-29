@@ -28,13 +28,11 @@ class App extends Component {
         };
 
         this.api = API(access_token);
-    }
+        }
 
     componentDidUpdate() {
         const { access_token } = this.state;
         window.localStorage.setItem('access_token', access_token);
-
-        this.api = API(access_token);
     }
 
     componentDidMount() {
@@ -77,19 +75,36 @@ class App extends Component {
     onSignUpSubmit() {
         const { signUpForm } = this.state;
 
-        this.setState({
-            // Stores information from current signup form to create a current user
-            currentUser: {
-                displayName: signUpForm.name,
+        this.api.post({
+            endpoint: 'auth/signup',
+            body: {
                 email: signUpForm.email,
+                displayName: signUpForm.displayName,
+                password: signUpForm.password,
             },
-            // Resets valuesin signUpForm
-            signUpForm: {
-                displayName: '',
-                email: '',
-                password: '',
-            },
-        });
+        })
+            .then(({ access_token }) => {
+                this.setState({
+                    access_token,
+                });
+
+                this.setState({
+                    currentUser: {
+                        displayName: signUpForm.displayName,
+                        email: signUpForm.email,
+                    },
+                    signUpForm: {
+                        name: '',
+                        email: '',
+                        password: '',
+                    },
+                });
+
+                this.api = API(access_token);
+
+                this.loadCurrentUser();
+            })
+            .catch(err => console.error(err));
     }
 
     onSignInSubmit() {
@@ -101,20 +116,22 @@ class App extends Component {
         } = this.state;
 
         this.api.post({
-           endpoint: 'auth/login',
-           body: {
-               email,
-               password,
-           }
+            endpoint: 'auth/login',
+            body: {
+                email,
+                password,
+            }
         })
-        .then (( { access_token }) => {
-            console.log(access_token);
-            this.setState({
-                access_token,
-            });
-            this.loadCurrentUser();
-        })
-        .catch (err => console.error(err));
+            .then(({ access_token }) => {
+                this.setState({
+                    access_token,
+                });
+
+                this.api = API(access_token);
+
+                this.loadCurrentUser();
+            })
+            .catch(err => console.error(err));
     }
 
     loadCurrentUser() {
@@ -126,15 +143,17 @@ class App extends Component {
         this.setState({
             [userField]: false,
         });
-        this.api.get({ endpoint: `api/users/${ id }` })
-        .then(({email, displayName}) => {
-            this.setState({
-                [userField]: {
-                    email,
-                    displayName,
-                },
-           });
-        });
+        this.api
+            .get({ endpoint: `api/users/${id}` })
+            .then(({ _id, email, displayName }) => {
+                this.setState({
+                    [userField]: {
+                        _id,
+                        email,
+                        displayName,
+                    },
+                });
+            });
     }
 
     render() {
@@ -155,20 +174,20 @@ class App extends Component {
                     <div>
                         <Route path="/app/signup" render={ () => (
                             <SignupForm
-                                state = { signUpForm }
-                                onNameUpdate = { this.onNameUpdate.bind(this) }
-                                onEmailUpdate = { this.onEmailUpdate.bind(this) }
-                                onPasswordUpdate = { this.onPasswordUpdate.bind(this) }
-                                onSubmit = { this.onSignUpSubmit.bind(this) }
-                                /> 
+                                state={ signUpForm }
+                                onNameUpdate={ this.onNameUpdate.bind(this) }
+                                onEmailUpdate={ this.onEmailUpdate.bind(this) }
+                                onPasswordUpdate={ this.onPasswordUpdate.bind(this) }
+                                onSubmit={ this.onSignUpSubmit.bind(this) }
+                                />
                         )} />
-                        <Route path="/app/signin" render={ SigninForm } render={ () => (
+                        <Route path="/app/signin" render={ () => (
                             <SigninForm
-                                state = { signInForm }
-                                onEmailUpdate = { this.onEmailUpdate.bind(this) }
-                                onPasswordUpdate = { this.onPasswordUpdate.bind(this) }
-                                onSubmit = { this.onSignInSubmit.bind(this) }
-                            /> 
+                                state={ signInForm }
+                                onEmailUpdate={ this.onEmailUpdate.bind(this) }
+                                onPasswordUpdate={ this.onPasswordUpdate.bind(this) }
+                                onSubmit={ this.onSignInSubmit.bind(this) }
+                                />
                         )} />
                         <Switch>
                         <Route path="/app/user/me/profile" render={ () => (
@@ -176,7 +195,7 @@ class App extends Component {
                         )} />
                         <Route path="/app/user/:id/profile" render={ ({ match }) => (
                                 <UserProfile
-                                    user={ user }
+                                    user={ currentUser }
                                     match={ match }
                                     loadUser={ this.loadUser.bind(this) }
                                 />
