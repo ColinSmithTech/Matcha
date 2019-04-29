@@ -1,167 +1,10 @@
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 import { BrowserRouter as Router, Route, Switch, Link } from "react-router-dom";
-import { withRouter } from 'react-router';
-
-// Sign in form
-class SigninForm extends Component {
-    render() {
-        const {
-            state: {
-                email,
-                password,
-            },
-            onEmailUpdate,
-            onPasswordUpdate,
-            onSubmit,
-        } = this.props
-
-        const FORM_NAME = "signInForm"
-
-        return (
-        <div>
-            <div>
-                <h2>I'm sign in form</h2>
-            </div>
-            <div>
-                <input
-                    type="email"
-                    onChange={ e => onEmailUpdate(FORM_NAME, e.target.value)}
-                    value={ email }
-                    placeholder="Your email"
-                />
-            </div>
-            <div>
-                <input
-                    type="password"
-                    onChange={ e => onPasswordUpdate(FORM_NAME, e.target.value)}
-                    value={ password }
-                    placeholder="Your password"
-                />
-            </div>
-            <div>
-                <button type="button" onClick={ () => {
-                    onSubmit();
-                }}>Continue</button>
-            </div>
-        </div>
-        );
-    }
-}
-
-// Displays the current users information
-class UserProfile extends Component {
-    render() {
-        const { user, match, loadUser } = this.props;
-
-        if (user === null) {
-            if (match && match.params.id) {
-                loadUser({ id: match.params.id });
-            }
-        }
-
-        if (user == null && user === false) {
-            return (
-                <div>
-                    <h2>Loading...</h2>
-                </div>
-            );
-        }
-
-        return (
-            <div>
-                <h2>User Profile</h2>
-                <span>Hi { user.displayName }</span>
-            </div>
-        );
-    }
-}
-
-// Sign up form
-class SignupForm extends Component {
-  render() {
-      const {
-          state: {
-              displayName,
-              email,
-              password,
-          },
-          onNameUpdate,
-          onEmailUpdate,
-          onPasswordUpdate,
-          onSubmit,
-          history,
-      } = this.props
-
-      const FORM_NAME = 'signUpForm';
-
-    return (
-        <div>
-            <h2>Sign up Form</h2>
-
-            <div>
-                <input
-                    type="text"
-                    onChange={ e => onNameUpdate(e.target.value)}
-                    value={ displayName }
-                    placeholder="Your name"
-                    />
-            </div>
-            <div>
-            <input
-                    type="email"
-                    onChange={ e => onEmailUpdate(FORM_NAME, e.target.value)}
-                    value={ email }
-                    placeholder="Your email"
-                    />
-            </div>
-            <div>
-            <input
-                    type="password"
-                    onChange={ e => onPasswordUpdate(FORM_NAME, e.target.value)}
-                    value={ password }
-                    placeholder="Your password"
-                    />
-            </div>
-            <div>
-                <button type="button" onClick={ () => {
-                    onSubmit();
-                    history.push('/app/user/profile');
-                }}>Continue</button>
-            </div>
-        </div>
-    );
-  }
-}
-const SignupFormWithRouter = withRouter(SignupForm);
-
-const API = access_token => {
-    const baseApiUrl = 'http://localhost:3000';
-    const defaultOptions = {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access_token}`,
-        },
-    };
-
-    return {
-        get({ endpoint, options = {} }) {
-            return fetch(
-                `${baseApiUrl}/${endpoint}`,
-                Object.assign({}, defaultOptions, options)
-            ).then(data => data.json());
-        },
-        post({ endpoint, options = {}, body = '' }) {
-            return fetch(
-                `${baseApiUrl}/${endpoint}`,
-                Object.assign({
-                    method: 'POST',
-                    body: JSON.stringify(body),
-                }, defaultOptions, options)
-            ).then(data => data.json());
-        },
-    };
-};
+import API from './api.js';
+import SignupForm from './SignupForm.js';
+import SigninForm from './SigninForm.js';
+import UserProfile from './UserProfile.js';
 
 class App extends Component {
     constructor(props) {
@@ -311,7 +154,7 @@ class App extends Component {
                     </div>
                     <div>
                         <Route path="/app/signup" render={ () => (
-                            <SignupFormWithRouter
+                            <SignupForm
                                 state = { signUpForm }
                                 onNameUpdate = { this.onNameUpdate.bind(this) }
                                 onEmailUpdate = { this.onEmailUpdate.bind(this) }
