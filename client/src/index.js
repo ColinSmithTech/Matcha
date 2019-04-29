@@ -21,7 +21,7 @@ class App extends Component {
                 password: '321321',
             },
             signUpForm: {
-                displayName: '',
+                name: '',
                 email: '',
                 password: '',
             },
