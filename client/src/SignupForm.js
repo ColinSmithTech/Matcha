@@ -5,7 +5,7 @@ class SignupForm extends Component {
     render() {
         const {
             state: {
-                name,
+                displayName,
                 email,
                 password,
             },
@@ -27,7 +27,7 @@ class SignupForm extends Component {
                     <input
                         type="text"
                         onChange={ e => onNameUpdate(e.target.value) }
-                        value={ name }
+                        value={ displayName }
                         placeholder="Your name" />
                 </div>
                 <div>

@@ -21,9 +21,9 @@ class App extends Component {
                 password: '321321',
             },
             signUpForm: {
-                name: '',
-                email: '',
-                password: '',
+                displayName: 'Bob Ross',
+                email: 'bob1@example.com',
+                password: '321321',
             },
         };
 
@@ -43,10 +43,10 @@ class App extends Component {
     }
 
     // The following three function handle updating the sign up forms data stored in state
-    onNameUpdate(name) {
+    onNameUpdate(displayName) {
         const { signUpForm } = this.state;
 
-        const updatedForm = Object.assign({}, signUpForm, { name });
+        const updatedForm = Object.assign({}, signUpForm, { displayName });
 
         this.setState({
             signUpForm: updatedForm,
@@ -85,7 +85,7 @@ class App extends Component {
             },
             // Resets valuesin signUpForm
             signUpForm: {
-                name: '',
+                displayName: '',
                 email: '',
                 password: '',
             },
