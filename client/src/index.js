@@ -54,6 +54,14 @@ class UserProfile extends Component {
     render() {
         const { user } = this.props;
 
+        if (user === null) {
+            return (
+                <div>
+                    <h2>Loading...</h2>
+                </div>
+            );
+        }
+
         return (
             <div>
                 <h2>User Profile</h2>
@@ -177,6 +185,11 @@ class App extends Component {
         window.localStorage.setItem('access_token', access_token);
 
         this.api = API(access_token);
+    }
+
+    componentDidMount() {
+        const { access_token } = this.state;
+        this.loadCurrentUser();
     }
 
     // The following three function handle updating the sign up forms data stored in state
