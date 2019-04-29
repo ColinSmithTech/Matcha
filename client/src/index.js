@@ -44,7 +44,7 @@ class App extends Component {
 
     // The following three function handle updating the sign up forms data stored in state
     onNameUpdate(name) {
-        const { signUpForm, signInForm } = this.state;
+        const { signUpForm } = this.state;
 
         const updatedForm = Object.assign({}, signUpForm, { name });
 
