@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { render } from 'react-dom';
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch, Link } from "react-router-dom";
 import { withRouter } from 'react-router';
 
 // Sign in form
@@ -52,9 +52,15 @@ class SigninForm extends Component {
 // Displays the current users information
 class UserProfile extends Component {
     render() {
-        const { user } = this.props;
+        const { user, match, loadUser } = this.props;
 
         if (user === null) {
+            if (match && match.params.id) {
+                loadUser({ id: match.params.id });
+            }
+        }
+
+        if (user === false) {
             return (
                 <div>
                     <h2>Loading...</h2>
@@ -65,7 +71,7 @@ class UserProfile extends Component {
         return (
             <div>
                 <h2>User Profile</h2>
-                <span>{ user.displayName }</span>
+                <span>Hi { user.displayName }</span>
             </div>
         );
     }
@@ -273,9 +279,12 @@ class App extends Component {
     }
 
     loadUser({ id }) {
+        const userField = id === 'me' ? 'currentUser' : 'user';
+        this.setState({
+            [userField]: false,
+        });
         this.api.get({ endpoint: `api/users/${ id }` })
         .then(({email, displayName}) => {
-            const userField = id === 'me' ? 'currentUser' : 'user';
             this.setState({
                 [userField]: {
                     email,
@@ -318,16 +327,18 @@ class App extends Component {
                                 onSubmit = { this.onSignInSubmit.bind(this) }
                             /> 
                         )} />
-                        <Route path="/app/user/me/profile" strict render={ () => (
+                        <Switch>
+                        <Route path="/app/user/me/profile" render={ () => (
                             <UserProfile user={ currentUser } />
                         )} />
-                        <Route path="/app/user/:id/profile" render={ match => (
-                            <UserProfile
-                                user={ user }
-                                match={ match }
-                                loadUser={ this.loadUser.bind(this) }
-                            />
-                        )} />
+                        <Route path="/app/user/:id/profile" render={ ({ match }) => (
+                                <UserProfile
+                                    user={ user }
+                                    match={ match }
+                                    loadUser={ this.loadUser.bind(this) }
+                                />
+                            )} />
+                        </Switch>
                     </div>
                 </div>
             </Router>
