@@ -166,6 +166,7 @@ class App extends Component {
         this.state = {
             access_token,
             currentUser: null,
+            user: null,
             signInForm: {
                 email: 'bob@example.com',
                 password: '321321',
@@ -268,52 +269,66 @@ class App extends Component {
     }
 
     loadCurrentUser() {
-        this.api.get({ endpoint: 'api/users/me' })
+        this.loadUser({ id: 'me' });
+    }
+
+    loadUser({ id }) {
+        this.api.get({ endpoint: `api/users/${ id }` })
         .then(({email, displayName}) => {
-           this.setState({
-               currentUser: {
+            const userField = id === 'me' ? 'currentUser' : 'user';
+            this.setState({
+                [userField]: {
                     email,
                     displayName,
-               },
+                },
            });
         });
     }
 
     render() {
-        const { currentUser, signUpForm, signInForm} = this.state
+        const { currentUser, user, signUpForm, signInForm} = this.state
         return (
             <Router>
                 <div>
-                    <ul>
-                        <li><Link to="/app/signin">Sign in</Link></li>
-                        <li><Link to="/app/signup">Sign up</Link></li>
-                        { 
-                            currentUser &&
-                            <li><Link to="/app/user/profile">{ currentUser.displayName }</Link></li>
-                        }
-                    </ul>
-                </div>
-                <div>
-                    <Route path="/app/signup" render={ () => (
-                        <SignupFormWithRouter
-                            state = { signUpForm }
-                            onNameUpdate = { this.onNameUpdate.bind(this) }
-                            onEmailUpdate = { this.onEmailUpdate.bind(this) }
-                            onPasswordUpdate = { this.onPasswordUpdate.bind(this) }
-                            onSubmit = { this.onSignUpSubmit.bind(this) }
+                    <div>
+                        <ul>
+                            <li><Link to="/app/signin">Sign in</Link></li>
+                            <li><Link to="/app/signup">Sign up</Link></li>
+                            { 
+                                currentUser &&
+                                <li><Link to="/app/user/me/profile">{ currentUser.displayName }</Link></li>
+                            }
+                        </ul>
+                    </div>
+                    <div>
+                        <Route path="/app/signup" render={ () => (
+                            <SignupFormWithRouter
+                                state = { signUpForm }
+                                onNameUpdate = { this.onNameUpdate.bind(this) }
+                                onEmailUpdate = { this.onEmailUpdate.bind(this) }
+                                onPasswordUpdate = { this.onPasswordUpdate.bind(this) }
+                                onSubmit = { this.onSignUpSubmit.bind(this) }
+                                /> 
+                        )} />
+                        <Route path="/app/signin" render={ SigninForm } render={ () => (
+                            <SigninForm
+                                state = { signInForm }
+                                onEmailUpdate = { this.onEmailUpdate.bind(this) }
+                                onPasswordUpdate = { this.onPasswordUpdate.bind(this) }
+                                onSubmit = { this.onSignInSubmit.bind(this) }
                             /> 
-                    )} />
-                    <Route path="/app/signin" render={ SigninForm } render={ () => (
-                        <SigninForm
-                            state = { signInForm }
-                            onEmailUpdate = { this.onEmailUpdate.bind(this) }
-                            onPasswordUpdate = { this.onPasswordUpdate.bind(this) }
-                            onSubmit = { this.onSignInSubmit.bind(this) }
-                        /> 
-                    )} />
-                    <Route path="/app/user/profile" render={ () => (
-                        <UserProfile user={ currentUser } />
-                    )} />
+                        )} />
+                        <Route path="/app/user/me/profile" strict render={ () => (
+                            <UserProfile user={ currentUser } />
+                        )} />
+                        <Route path="/app/user/:id/profile" render={ match => (
+                            <UserProfile
+                                user={ user }
+                                match={ match }
+                                loadUser={ this.loadUser.bind(this) }
+                            />
+                        )} />
+                    </div>
                 </div>
             </Router>
         );

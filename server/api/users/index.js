@@ -33,32 +33,6 @@ module.exports = (db, isAuthenticated) => {
         });
     });
 
-    router.get('/:id/vote/up', isAuthenticated, (req, res) => {
-        const { user, params: { id } } = req;
-
-        if (!user.scores) {
-            user.scores = {};
-        }
-
-        user.scores[id] = user.scores[id] ? (user.scores[id] + 1) : +1;
-
-        console.log(user);
-
-        user.save().then(res.json({ score: user.scores[id] }));
-    });
-
-    router.get('/:id/vote/down', isAuthenticated, (req, res) => {
-        const { user, params: { id } } = req;
-
-        if (!user.scores) {
-            user.scores = {};
-        }
-
-        user.scores[id] = user.scores[id] ? (user.scores[id] - 1) : -1;
-
-        user.save().then(res.json({ score: user.scores[id] }));
-    });
-
     router.get('/', isAuthenticated, (req, res) => {
         const { user } = req;
 
